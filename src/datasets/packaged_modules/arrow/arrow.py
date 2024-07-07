@@ -47,7 +47,10 @@ class Arrow(datasets.ArrowBasedBuilder):
                         reader = pa.ipc.open_stream(data_memory_map)
                     except pa.lib.ArrowInvalid:
                         reader = pa.ipc.open_file(data_memory_map)
-                    self.info.features = datasets.Features.from_arrow_schema(reader.schema)
+                    schema = reader.schema
+                    new_field = pa.field('tokens', pa.list_(pa.int64()))
+                    new_schema = schema.remove(schema.get_field_index('tokens')).append(new_field)
+                    self.info.features = datasets.Features.from_arrow_schema(new_schema)
                     break
             splits.append(datasets.SplitGenerator(name=split_name, gen_kwargs={"files": files}))
         return splits
